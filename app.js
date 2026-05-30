@@ -6,6 +6,8 @@ const STORAGE_KEYS = {
 const NOTE_HISTORY_CAP = 50;
 const NOTE_PREVIEW_CHARS = 200;
 const WHISPER_URL = 'https://api.openai.com/v1/audio/transcriptions';
+const TRANSCRIPTION_MODEL = 'whisper-1';
+const TRANSCRIPTION_PROMPT = 'This voice note may contain English and Cantonese. Transcribe each language as spoken. Use Traditional Chinese for Cantonese, and preserve English words, product names, and code.';
 
 // ── State ───────────────────────────────────────────────────
 let mediaRecorder = null;
@@ -15,6 +17,7 @@ let isProcessing = false;
 let startTime = null;
 let timerInterval = null;
 let notes = [];
+let wakeLock = null;
 
 // ── DOM refs ────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
@@ -193,6 +196,47 @@ function stopTimer() {
   timerInterval = null;
 }
 
+// ── Screen wake lock ────────────────────────────────────────
+async function requestRecordingWakeLock() {
+  if (!('wakeLock' in navigator) || !isRecording || document.visibilityState !== 'visible') {
+    return;
+  }
+
+  try {
+    const lock = await navigator.wakeLock.request('screen');
+    if (!isRecording) {
+      await lock.release();
+      return;
+    }
+
+    wakeLock = lock;
+    wakeLock.addEventListener('release', () => {
+      wakeLock = null;
+    }, { once: true });
+  } catch (err) {
+    wakeLock = null;
+  }
+}
+
+async function releaseRecordingWakeLock() {
+  const lock = wakeLock;
+  wakeLock = null;
+
+  if (lock) {
+    try {
+      await lock.release();
+    } catch (err) {
+      // The browser may already have released it when the page lost visibility.
+    }
+  }
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible' && isRecording && !wakeLock) {
+    void requestRecordingWakeLock();
+  }
+}
+
 // ── Recording flow ──────────────────────────────────────────
 async function handleTap() {
   if (isProcessing) return;
@@ -236,6 +280,7 @@ async function startRecording() {
 
     mediaRecorder.start(1000);
     isRecording = true;
+    void requestRecordingWakeLock();
     recordBtn.classList.add('recording');
     setStatus('REC');
     setRecLed(true);
@@ -248,6 +293,7 @@ async function startRecording() {
 }
 
 function stopRecording() {
+  void releaseRecordingWakeLock();
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop();
   }
@@ -297,7 +343,8 @@ async function transcribeWithWhisper(audioBlob, ext) {
   const apiKey = getApiKey();
   const formData = new FormData();
   formData.append('file', audioBlob, `recording.${ext}`);
-  formData.append('model', 'whisper-1');
+  formData.append('model', TRANSCRIPTION_MODEL);
+  formData.append('prompt', TRANSCRIPTION_PROMPT);
   formData.append('response_format', 'text');
 
   const response = await fetch(WHISPER_URL, {
@@ -351,5 +398,6 @@ noteCopyBtn.addEventListener('click', copyNote);
 noteModal.addEventListener('click', (e) => {
   if (e.target === noteModal) closeNote();
 });
+document.addEventListener('visibilitychange', handleVisibilityChange);
 
 loadNotes();

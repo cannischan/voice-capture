@@ -116,7 +116,9 @@ Honest list of what this *won't* do today, so you can decide whether the trade-o
 ### Capture
 - **Requires internet** for Whisper. No offline transcription. (If you need offline, run `whisper.cpp` locally.)
 - **Microphone permission required.** Browsers prompt per-origin; if you deny once you'll need to re-grant via site settings.
-- **Recording while screen is off** is unreliable on mobile browsers — keep the screen on while recording.
+- **Mixed English/Cantonese notes supported.** The transcription prompt is tuned for voice notes that switch between English and Cantonese, using Traditional Chinese for Cantonese while preserving English words, product names, and code.
+- **Language prompt is customizable.** If you speak different languages, edit `TRANSCRIPTION_PROMPT` in `app.js` to describe the languages and output style you want.
+- **Recording while screen is off** is unreliable on mobile browsers. While recording, Dictamate asks the browser for a screen wake lock so the display should stay on where supported; if the browser does not support wake locks, keep the screen on manually.
 - **iOS Safari quirks** — `MediaRecorder` works on iOS 14.5+, but some MIME types differ. The app probes and falls back automatically.
 - **25 MB Whisper file limit** — roughly 90 minutes of compressed audio per request. More than enough for voice notes.
 
