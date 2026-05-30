@@ -7,7 +7,7 @@ const NOTE_HISTORY_CAP = 50;
 const NOTE_PREVIEW_CHARS = 200;
 const WHISPER_URL = 'https://api.openai.com/v1/audio/transcriptions';
 const TRANSCRIPTION_MODEL = 'whisper-1';
-const TRANSCRIPTION_PROMPT = 'This voice note may contain English and Cantonese. Transcribe each language as spoken. Use Traditional Chinese for Cantonese, and preserve English words, product names, and code.';
+const TRANSCRIPTION_PROMPT = 'This voice note may contain English and Cantonese. Transcribe each language as spoken. Use Traditional Chinese for Cantonese. Do not translate Cantonese into English. Preserve English words, product names, and code.';
 
 // ── State ───────────────────────────────────────────────────
 let mediaRecorder = null;
@@ -18,6 +18,7 @@ let startTime = null;
 let timerInterval = null;
 let notes = [];
 let wakeLock = null;
+let saveStatusTimer = null;
 
 // ── DOM refs ────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
@@ -147,7 +148,7 @@ function redownloadNote() {
   const n = notes[i];
   if (!n) return;
   const text = n.text || n.preview || '';
-  downloadMarkdown(text, new Date(n.date));
+  void saveMarkdown(text, new Date(n.date), { preferShare: true });
 }
 
 // ── Settings ────────────────────────────────────────────────
@@ -178,6 +179,11 @@ function setStatus(text, type = '') {
 
 function setRecLed(on) {
   recLedEl.classList.toggle('on', on);
+}
+
+function isIOSLike() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
 function startTimer() {
@@ -320,9 +326,14 @@ async function processRecording() {
 
     if (transcript) {
       const now = new Date();
-      downloadMarkdown(transcript, now);
       saveNoteToHistory(now.toISOString(), transcript);
-      setStatus('SAVED');
+      const saved = await saveMarkdown(transcript, now, { preferShare: isIOSLike() });
+      if (saved) {
+        setStatus('SAVED');
+      } else {
+        openNote(0);
+        setStatus('TAP .MD');
+      }
     }
   } catch (err) {
     setStatus((err.message || 'ERROR').substring(0, 18), 'error');
@@ -360,7 +371,7 @@ async function transcribeWithWhisper(audioBlob, ext) {
   return (await response.text()).trim();
 }
 
-function downloadMarkdown(transcript, date) {
+function buildMarkdownFile(transcript, date) {
   const pad = (n) => String(n).padStart(2, '0');
   const dateStamp = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}`;
   const isoDate = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -375,6 +386,18 @@ ${transcript}
 
   const filename = `${dateStamp}_voice-note.md`;
   const blob = new Blob([markdown], { type: 'text/markdown' });
+  const file = new File([blob], filename, { type: 'text/markdown' });
+
+  return { blob, file, filename };
+}
+
+function canShareFile(file) {
+  return 'share' in navigator
+    && 'canShare' in navigator
+    && navigator.canShare({ files: [file] });
+}
+
+function downloadMarkdownFile(blob, filename) {
   const url = URL.createObjectURL(blob);
 
   const a = document.createElement('a');
@@ -384,6 +407,45 @@ ${transcript}
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function showSaveFeedback(text) {
+  clearTimeout(saveStatusTimer);
+  const label = noteDownloadBtn.querySelector('.lbl');
+  const glyph = noteDownloadBtn.querySelector('.glyph');
+  const origLbl = label.textContent;
+  const origGlyph = glyph.textContent;
+  label.textContent = text;
+  glyph.textContent = text === 'Saved' ? '✓' : '!';
+  saveStatusTimer = setTimeout(() => {
+    label.textContent = origLbl;
+    glyph.textContent = origGlyph;
+  }, 1500);
+}
+
+async function saveMarkdown(transcript, date, options = {}) {
+  const { blob, file, filename } = buildMarkdownFile(transcript, date);
+
+  if (options.preferShare && canShareFile(file)) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: filename,
+        text: 'Dictamate voice note',
+      });
+      if (noteModal.classList.contains('open')) showSaveFeedback('Saved');
+      return true;
+    } catch (err) {
+      if (err.name === 'AbortError') return true;
+      if (noteModal.classList.contains('open')) showSaveFeedback('Try Save');
+      return false;
+    }
+  }
+
+  if (isIOSLike()) return false;
+
+  downloadMarkdownFile(blob, filename);
+  return true;
 }
 
 // ── Wire up event listeners ─────────────────────────────────

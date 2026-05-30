@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Dictamate app icon">
+  <defs>
+    <linearGradient id="bg" x1="140" y1="84" x2="884" y2="940" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#302e29"/>
+      <stop offset="1" stop-color="#12110f"/>
+    </linearGradient>
+    <linearGradient id="case" x1="248" y1="174" x2="776" y2="872" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f1e4c0"/>
+      <stop offset="0.52" stop-color="#d3bd8c"/>
+      <stop offset="1" stop-color="#9f8858"/>
+    </linearGradient>
+    <linearGradient id="lcd" x1="310" y1="280" x2="714" y2="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#34462a"/>
+      <stop offset="1" stop-color="#1e291a"/>
+    </linearGradient>
+    <linearGradient id="button" x1="370" y1="514" x2="654" y2="798" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#e34b36"/>
+      <stop offset="0.58" stop-color="#bd2d1e"/>
+      <stop offset="1" stop-color="#75170f"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="34" stdDeviation="34" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+  <g filter="url(#shadow)">
+    <rect x="238" y="136" width="548" height="760" rx="86" fill="url(#case)"/>
+    <rect x="238" y="136" width="548" height="760" rx="86" fill="none" stroke="#fff4cf" stroke-opacity="0.35" stroke-width="10"/>
+    <rect x="285" y="244" width="454" height="176" rx="28" fill="#14170f"/>
+    <rect x="310" y="270" width="404" height="124" rx="14" fill="url(#lcd)"/>
+    <rect x="344" y="306" width="160" height="20" rx="10" fill="#b8da80"/>
+    <rect x="344" y="344" width="280" height="20" rx="10" fill="#698b4b"/>
+    <circle cx="668" cy="332" r="24" fill="#b8da80"/>
+    <circle cx="512" cy="650" r="154" fill="url(#button)"/>
+    <circle cx="512" cy="650" r="128" fill="none" stroke="#ff7f69" stroke-opacity="0.42" stroke-width="13"/>
+    <circle cx="512" cy="650" r="50" fill="#fff6e6"/>
+    <g fill="#4a3e25" opacity="0.9">
+      <circle cx="342" cy="806" r="13"/>
+      <circle cx="386" cy="806" r="13"/>
+      <circle cx="430" cy="806" r="13"/>
+      <circle cx="594" cy="806" r="13"/>
+      <circle cx="638" cy="806" r="13"/>
+      <circle cx="682" cy="806" r="13"/>
+    </g>
+  </g>
+</svg>

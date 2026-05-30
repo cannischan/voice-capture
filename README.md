@@ -57,7 +57,7 @@ You drag the `.md` into your Obsidian vault (or wherever you keep notes). AI sum
 
 - Open Dictamate from your home screen
 - Tap REC, talk, tap STOP
-- Drag the downloaded `.md` into your vault
+- Save/share the `.md` file into your vault
 
 ---
 
@@ -70,6 +70,12 @@ voice-capture/
 ├── index.html                       static markup
 ├── styles.css                       presentation
 ├── app.js                           recording / Whisper / history
+├── manifest.webmanifest             install metadata
+├── icon.svg                         source app icon
+├── icon-180.png                     iPhone Home Screen icon
+├── icon-192.png                     web app icon
+├── icon-512.png                     web app icon
+├── icon-1024.png                    high-resolution icon source
 ├── README.md                        this file
 └── voice-capture-architecture.md    detailed architecture
 ```
@@ -123,7 +129,7 @@ Honest list of what this *won't* do today, so you can decide whether the trade-o
 - **25 MB Whisper file limit** — roughly 90 minutes of compressed audio per request. More than enough for voice notes.
 
 ### Output
-- **The browser chooses where downloads go.** You can't auto-save into a specific Obsidian folder — that's a browser security boundary. You drag the file in (or set your browser's download location to your vault folder).
+- **The browser chooses where files go.** Desktop browsers download the `.md` file directly. On iPhone, Safari may use the native share/save sheet instead because generated Markdown downloads are often previewed rather than saved automatically.
 - **No automatic AI processing.** Summarisation, tagging, linking are deferred to you and your tools (Claude Code, Obsidian plugins, etc.). By design — keeps capture fast and cost low.
 
 ### Stylistic / minor
