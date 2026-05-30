@@ -29,12 +29,12 @@ The audio leaves your device only to be transcribed. Per OpenAI's API policy, Wh
 ## File layout
 
 ```
-voice-capture/
+dictamate-4000/
 ├── index.html                       # markup only
 ├── styles.css                       # all CSS
 ├── app.js                           # all JS (recording, Whisper call, history, UI)
 ├── README.md                        # problem, usage, security, limits
-├── voice-capture-architecture.md    # this file
+├── dictamate-4000-architecture.md   # this file
 └── .gitignore
 ```
 

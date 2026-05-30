@@ -2,7 +2,7 @@
 
 A web-based dictaphone that records a voice note, transcribes it with OpenAI Whisper, and downloads the result as a Markdown file you can save anywhere.
 
-→ **Live site:** https://cannischan.github.io/voice-capture/
+→ **Live site:** https://cannischan.github.io/dictamate-4000/
 
 ---
 
@@ -63,10 +63,10 @@ You drag the `.md` into your Obsidian vault (or wherever you keep notes). AI sum
 
 ## Architecture summary
 
-Browser → OpenAI Whisper → Markdown download. No server, no signup, no third-party tracking. Full diagrams and component breakdown in [`voice-capture-architecture.md`](./voice-capture-architecture.md).
+Browser → OpenAI Whisper → Markdown download. No server, no signup, no third-party tracking. Full diagrams and component breakdown in [`dictamate-4000-architecture.md`](./dictamate-4000-architecture.md).
 
 ```
-voice-capture/
+dictamate-4000/
 ├── index.html                       static markup
 ├── styles.css                       presentation
 ├── app.js                           recording / Whisper / history
@@ -77,7 +77,7 @@ voice-capture/
 ├── icon-512.png                     web app icon
 ├── icon-1024.png                    high-resolution icon source
 ├── README.md                        this file
-└── voice-capture-architecture.md    detailed architecture
+└── dictamate-4000-architecture.md   detailed architecture
 ```
 
 ---
