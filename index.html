@@ -49,7 +49,7 @@
         <div class="lcd-time" id="lcdTime">00:00</div>
       </div>
       <div class="lcd-meta">
-        <span><span class="dot" id="lcdDot"></span><span>TAPE A</span></span>
+        <span><span class="dot" id="lcdDot"></span><span id="modeLabel">AUTO</span></span>
         <span id="lcdCount">0 NOTES</span>
       </div>
       <div class="tape-strip" id="tapeStrip"></div>
@@ -64,15 +64,19 @@
     </button>
   </div>
 
-  <div class="transport">
-    <button class="tbtn" id="stopBtn" aria-label="Stop">
-      <span class="glyph">■</span><span class="tlabel">STOP</span>
+  <div class="mode-deck" role="radiogroup" aria-label="Speech language">
+    <button class="mode-btn" type="button" data-mode="mixed" role="radio" aria-checked="true">
+      <span class="mode-code">AUTO</span>
     </button>
-  </div>
-
-  <div class="grille" aria-hidden="true">
-    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-    <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    <button class="mode-btn" type="button" data-mode="cantonese" role="radio" aria-checked="false">
+      <span class="mode-code">粵</span>
+    </button>
+    <button class="mode-btn" type="button" data-mode="english" role="radio" aria-checked="false">
+      <span class="mode-code">ENG</span>
+    </button>
+    <button class="mode-btn" type="button" data-mode="mandarin" role="radio" aria-checked="false">
+      <span class="mode-code">中</span>
+    </button>
   </div>
 </div>
 

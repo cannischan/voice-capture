@@ -2,12 +2,35 @@
 const STORAGE_KEYS = {
   apiKey: 'whisper_api_key',
   notes: 'voice_notes',
+  transcriptionMode: 'transcription_mode',
 };
 const NOTE_HISTORY_CAP = 50;
 const NOTE_PREVIEW_CHARS = 200;
 const WHISPER_URL = 'https://api.openai.com/v1/audio/transcriptions';
 const TRANSCRIPTION_MODEL = 'whisper-1';
-const TRANSCRIPTION_PROMPT = 'This voice note may contain English and Cantonese. Transcribe each language as spoken. Use Traditional Chinese for Cantonese. Do not translate Cantonese into English. Preserve English words, product names, and code.';
+const DEFAULT_TRANSCRIPTION_MODE = 'mixed';
+const TRANSCRIPTION_MODES = {
+  mixed: {
+    label: 'AUTO',
+    language: '',
+    prompt: 'This voice note may contain English and Cantonese. Transcribe each language as spoken. Use Traditional Chinese for Cantonese. Do not rewrite Cantonese as Mandarin written Chinese. Do not translate Cantonese into English. Preserve English words, product names, and code.',
+  },
+  cantonese: {
+    label: 'CANTONESE',
+    language: 'zh',
+    prompt: 'The speaker is speaking Cantonese, also called Yue Chinese. Transcribe as written Cantonese using Traditional Chinese characters. Preserve Cantonese vocabulary, particles, colloquial phrasing, tone, emphasis, and main points. Do not rewrite as Mandarin written Chinese. Do not translate Cantonese into English. Preserve any English words, product names, and code.',
+  },
+  english: {
+    label: 'ENG',
+    language: 'en',
+    prompt: 'The speaker is speaking English. Transcribe accurately and preserve product names, technical terms, and code.',
+  },
+  mandarin: {
+    label: 'MANDARIN',
+    language: 'zh',
+    prompt: 'The speaker is speaking Mandarin Chinese. Transcribe accurately in written Chinese and preserve any English words, product names, and code.',
+  },
+};
 
 // ── State ───────────────────────────────────────────────────
 let mediaRecorder = null;
@@ -19,15 +42,16 @@ let timerInterval = null;
 let notes = [];
 let wakeLock = null;
 let saveStatusTimer = null;
+let activeRecordingMode = null;
 
 // ── DOM refs ────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 const recordBtn = $('recordBtn');
-const stopBtn = $('stopBtn');
 const screwBtn = $('screwBtn');
 const statusEl = $('status');
 const lcdTimeEl = $('lcdTime');
 const lcdDotEl = $('lcdDot');
+const modeLabelEl = $('modeLabel');
 const lcdCountEl = $('lcdCount');
 const tapeStripEl = $('tapeStrip');
 const recLedEl = $('recLed');
@@ -35,6 +59,7 @@ const recentSection = $('recentSection');
 const recentList = $('recentList');
 const settingsModal = $('settingsModal');
 const apiKeyInput = $('apiKeyInput');
+const modeButtons = Array.from(document.querySelectorAll('.mode-btn'));
 const settingsCancelBtn = $('settingsCancelBtn');
 const settingsSaveBtn = $('settingsSaveBtn');
 const noteModal = $('noteModal');
@@ -47,6 +72,17 @@ const noteCopyBtn = $('noteCopyBtn');
 // ── Storage helpers ─────────────────────────────────────────
 function getApiKey() {
   return localStorage.getItem(STORAGE_KEYS.apiKey) || '';
+}
+
+function getTranscriptionMode() {
+  const mode = localStorage.getItem(STORAGE_KEYS.transcriptionMode) || DEFAULT_TRANSCRIPTION_MODE;
+  return TRANSCRIPTION_MODES[mode] ? mode : DEFAULT_TRANSCRIPTION_MODE;
+}
+
+function setTranscriptionMode(mode) {
+  const nextMode = TRANSCRIPTION_MODES[mode] ? mode : DEFAULT_TRANSCRIPTION_MODE;
+  localStorage.setItem(STORAGE_KEYS.transcriptionMode, nextMode);
+  renderTranscriptionMode();
 }
 
 function loadNotes() {
@@ -181,6 +217,29 @@ function setRecLed(on) {
   recLedEl.classList.toggle('on', on);
 }
 
+function setRecordButtonState(state) {
+  const label = recordBtn.querySelector('.rec-label');
+  recordBtn.classList.toggle('recording', state === 'recording');
+  recordBtn.classList.toggle('processing', state === 'processing');
+  recordBtn.disabled = state === 'processing';
+  recordBtn.setAttribute('aria-label', state === 'recording' ? 'Stop recording' : 'Record');
+  if (label) label.textContent = state === 'recording' ? 'STOP' : 'REC';
+  modeButtons.forEach((btn) => {
+    btn.disabled = state !== 'ready';
+  });
+}
+
+function renderTranscriptionMode() {
+  const mode = getTranscriptionMode();
+  const modeConfig = TRANSCRIPTION_MODES[mode];
+  modeLabelEl.textContent = modeConfig.label;
+  modeButtons.forEach((btn) => {
+    const selected = btn.dataset.mode === mode;
+    btn.classList.toggle('active', selected);
+    btn.setAttribute('aria-checked', selected ? 'true' : 'false');
+  });
+}
+
 function isIOSLike() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent)
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -250,10 +309,6 @@ async function handleTap() {
   else await startRecording();
 }
 
-function handleStop() {
-  if (isRecording) stopRecording();
-}
-
 async function startRecording() {
   const apiKey = getApiKey();
   if (!apiKey) {
@@ -286,8 +341,9 @@ async function startRecording() {
 
     mediaRecorder.start(1000);
     isRecording = true;
+    activeRecordingMode = getTranscriptionMode();
     void requestRecordingWakeLock();
-    recordBtn.classList.add('recording');
+    setRecordButtonState('recording');
     setStatus('REC');
     setRecLed(true);
     lcdDotEl.classList.add('live');
@@ -305,8 +361,7 @@ function stopRecording() {
   }
   isRecording = false;
   stopTimer();
-  recordBtn.classList.remove('recording');
-  recordBtn.classList.add('processing');
+  setRecordButtonState('processing');
   setStatus('TRANSCRIBING');
   setRecLed(false);
   lcdDotEl.classList.remove('live');
@@ -339,7 +394,8 @@ async function processRecording() {
     setStatus((err.message || 'ERROR').substring(0, 18), 'error');
   } finally {
     isProcessing = false;
-    recordBtn.classList.remove('processing');
+    activeRecordingMode = null;
+    setRecordButtonState('ready');
     tapeStripEl.classList.remove('rolling');
     setTimeout(() => {
       if (!isRecording && !isProcessing) {
@@ -352,10 +408,12 @@ async function processRecording() {
 
 async function transcribeWithWhisper(audioBlob, ext) {
   const apiKey = getApiKey();
+  const transcriptionMode = TRANSCRIPTION_MODES[activeRecordingMode || getTranscriptionMode()];
   const formData = new FormData();
   formData.append('file', audioBlob, `recording.${ext}`);
   formData.append('model', TRANSCRIPTION_MODEL);
-  formData.append('prompt', TRANSCRIPTION_PROMPT);
+  if (transcriptionMode.language) formData.append('language', transcriptionMode.language);
+  formData.append('prompt', transcriptionMode.prompt);
   formData.append('response_format', 'text');
 
   const response = await fetch(WHISPER_URL, {
@@ -450,8 +508,12 @@ async function saveMarkdown(transcript, date, options = {}) {
 
 // ── Wire up event listeners ─────────────────────────────────
 recordBtn.addEventListener('click', handleTap);
-stopBtn.addEventListener('click', handleStop);
 screwBtn.addEventListener('click', openSettings);
+modeButtons.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    if (!isRecording && !isProcessing) setTranscriptionMode(btn.dataset.mode);
+  });
+});
 settingsCancelBtn.addEventListener('click', closeSettings);
 settingsSaveBtn.addEventListener('click', saveSettings);
 noteCloseBtn.addEventListener('click', closeNote);
@@ -463,3 +525,5 @@ noteModal.addEventListener('click', (e) => {
 document.addEventListener('visibilitychange', handleVisibilityChange);
 
 loadNotes();
+renderTranscriptionMode();
+setRecordButtonState('ready');

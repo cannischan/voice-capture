@@ -201,6 +201,8 @@ body {
   justify-content: space-between;
   margin-top: 8px;
   font-size: 14px;
+  line-height: 14px;
+  min-height: 14px;
   color: var(--lcd-dim);
   letter-spacing: 2px;
 }
@@ -352,74 +354,67 @@ body {
   display: none;
 }
 
+.rec-btn:disabled { cursor: wait; }
+
 .rec-btn.processing .rec-icon,
 .rec-btn.processing .rec-label { display: none; }
 .rec-btn.processing .spinner { display: block; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Stop button ─────────────────────────────────────────── */
-.transport {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 18px;
-}
-
-.tbtn {
-  background: var(--btn-plastic);
-  border: 1px solid rgba(58, 47, 26, 0.18);
-  border-radius: 6px;
-  padding: 10px 26px 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  box-shadow:
-    0 1px 0 rgba(255, 248, 220, 0.5) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.12) inset;
-  transition: transform 0.06s ease, background 0.06s ease;
-}
-
-.tbtn:active {
-  transform: translateY(1px);
-  background: var(--btn-plastic-pressed);
-}
-
-.tbtn .glyph {
-  color: var(--label);
-  font-size: 14px;
-  line-height: 1;
-}
-
-.tbtn .tlabel {
-  color: var(--label);
-  font-family: 'Oswald', sans-serif;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 3px;
-  text-shadow: 0 1px 0 rgba(255, 248, 220, 0.5);
-}
-
-/* Speaker grille */
-.grille {
+/* ── Language mode deck ──────────────────────────────────── */
+.mode-deck {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 4px;
-  padding: 10px 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  padding: 4px;
   margin: 0 -2px 4px;
-  background: linear-gradient(180deg, #b09773 0%, #8a7549 100%);
+  background: linear-gradient(180deg, #5f512f 0%, #8a7549 100%);
   border-radius: 6px;
   box-shadow:
     inset 0 1px 2px rgba(0, 0, 0, 0.35),
-    inset 0 -1px 0 rgba(255, 248, 220, 0.18);
+    inset 0 -1px 0 rgba(255, 248, 220, 0.18),
+    0 1px 0 rgba(255, 248, 220, 0.35);
 }
 
-.grille i {
-  display: block;
-  aspect-ratio: 1;
-  background: var(--speaker-dot);
-  border-radius: 50%;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.6);
+.mode-btn {
+  min-width: 0;
+  height: 34px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(244, 233, 200, 0.68);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  transition: background 0.12s ease, color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.mode-btn:active,
+.mode-btn.active {
+  background: #f4e9c8;
+  color: var(--label);
+  transform: none;
+  box-shadow:
+    0 1px 0 rgba(255, 248, 220, 0.7) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.18) inset,
+    0 0 0 1px rgba(58, 47, 26, 0.18);
+}
+
+.mode-btn:disabled {
+  cursor: default;
+  opacity: 0.62;
+}
+
+.mode-code {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 1.6px;
+  white-space: nowrap;
 }
 
 /* ── Tape library ────────────────────────────────────────── */
