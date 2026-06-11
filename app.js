@@ -17,8 +17,8 @@ const TRANSCRIPTION_MODES = {
   },
   cantonese: {
     label: 'CANTONESE',
-    language: 'zh',
-    prompt: 'The speaker is speaking Cantonese, also called Yue Chinese. Transcribe as written Cantonese using Traditional Chinese characters. Preserve Cantonese vocabulary, particles, colloquial phrasing, tone, emphasis, and main points. Do not rewrite as Mandarin written Chinese. Do not translate Cantonese into English. Preserve any English words, product names, and code.',
+    language: '',
+    prompt: '以下係廣東話／粵語口述內容。請用香港繁體中文同書面粵語逐字轉錄，保留語氣、口頭禪、助詞同廣東話講法，例如：我覺得、其實、係、唔、咁、嘅、喺、佢、哋、呢、啦、喎、啫、囉。唔好改寫成普通話或者標準書面中文，唔好翻譯成英文。保留英文詞語、產品名稱同代碼。',
   },
   english: {
     label: 'ENG',
